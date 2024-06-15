@@ -2,7 +2,7 @@
 using   Statistics
 using Clustering
 
-# Definir función de kernel
+# Definir función de kernel gaussiano
 function K_gauss(x, x0, h)
     d = length(x0)
     u = u = transpose(x - x0) * (x - x0) / h^2
@@ -47,7 +47,7 @@ function prediceGRNN(x1, modelo)
             # Capa de patrones
             kernel = Kh(x, x0[i, :])
             # Capa de suma
-            suma_abajo += kernel * n0[i]
+            suma_abajo += n0[i] * kernel 
             suma_arriba += y0[i] * kernel
         end
         if abs(suma_abajo) > 1e-16
