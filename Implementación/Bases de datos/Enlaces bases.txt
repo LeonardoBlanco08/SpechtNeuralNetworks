@@ -1,3 +1,0 @@
-Forest Fires: https://archive.ics.uci.edu/dataset/162/forest+fires
-
-New York City Taxi Trip Duration: https://www.kaggle.com/competitions/nyc-taxi-trip-duration/data

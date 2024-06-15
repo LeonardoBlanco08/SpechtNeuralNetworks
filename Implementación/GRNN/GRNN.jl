@@ -9,6 +9,16 @@ function K_gauss(x, x0, h)
     kernel = (2π)^(-d/2) * h^(-d) * exp(-u / 2)
     return kernel
 end
+
+# Función para centrar y estandarizar los datos
+function estandarizar!(x)
+    μ = mean(x, dims=1)
+    σ = std(x, dims=1)
+    x .= (x .- μ) ./ σ
+    return x, μ, σ
+end
+
+
 # Definir función para fijar un tipo de kernel escalado con su factor de suavizamiento
 function fija_Kh(h, tipo)
     if tipo == "gaussiano"
@@ -60,7 +70,12 @@ function prediceGRNN(x1, modelo)
 end
 
 # Función principal para GRNN
-function GRNN(x1, y0, x0, h, tipo="gaussiano", agrupa=false, k=nothing)
+function GRNN(x1, y0, x0, h, tipo="gaussiano", estandariza = true, agrupa=false, k=nothing)
+    if estandariza
+        # Centrar y estandarizar x1 y x0
+        x1, μ1, σ1 = estandarizar!(x1)
+        x0, μ0, σ0 = estandarizar!(x0)
+    end
     # Capa de entrada
     modelo = entrenaGRNN(y0, x0, h, tipo, agrupa, k)
     # Capas de patrones y sumas
