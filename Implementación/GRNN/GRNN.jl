@@ -5,17 +5,16 @@ using Clustering
 # Definir función de kernel gaussiano
 function K_gauss(x, x0, h)
     d = length(x0)
-    u = u = transpose(x - x0) * (x - x0) / h^2
+    u = transpose(x - x0) * (x - x0) / h^2
     kernel = (2π)^(-d/2) * h^(-d) * exp(-u / 2)
     return kernel
 end
 
 # Función para centrar y estandarizar los datos
 function estandarizar!(x)
-    μ = mean(x, dims=1)
     σ = std(x, dims=1)
-    x .= (x .- μ) ./ σ
-    return x, μ, σ
+    x .= x ./ σ
+    return x, σ
 end
 
 
@@ -28,7 +27,7 @@ function fija_Kh(h, tipo)
 end
 
 # Función para entrenar GRNN
-function entrenaGRNN(y0, x0, h, tipo = "gaussiano", agrupa=false, k=nothing)
+function entrenaGRNN(y0, x0, h, tipo="gaussiano", agrupa=false, k=nothing)
     if agrupa
         k = Int(k)
         clustering = kmeans(x0', k)
@@ -52,7 +51,7 @@ function prediceGRNN(x1, modelo)
     for j in 1:m
         suma_abajo = 0.0
         suma_arriba = 0.0
-        x = x1[j, :]   # Seleccionar la fila j de x1
+        x = x1[j, :]   
         for i in 1:n
             # Capa de patrones
             kernel = Kh(x, x0[i, :])
@@ -60,7 +59,7 @@ function prediceGRNN(x1, modelo)
             suma_abajo += n0[i] * kernel 
             suma_arriba += y0[i] * kernel
         end
-        if abs(suma_abajo) > 1e-16
+        if abs(suma_abajo) > 1e-30
             y1[j] = suma_arriba / suma_abajo
         else
             y1[j] = 0.0
@@ -70,11 +69,12 @@ function prediceGRNN(x1, modelo)
 end
 
 # Función principal para GRNN
-function GRNN(x1, y0, x0, h, tipo="gaussiano", estandariza = true, agrupa=false, k=nothing)
+function GRNN(x1, y0, x0, h, tipo="gaussiano", estandariza=true, agrupa=false, k=nothing)
     if estandariza
-        # Centrar y estandarizar x1 y x0
-        x1, μ1, σ1 = estandarizar!(x1)
-        x0, μ0, σ0 = estandarizar!(x0)
+        # Estandarizar x1 y x0
+        x0, σ = estandarizar!(x0)
+        x1 = x1 ./ σ
+        
     end
     # Capa de entrada
     modelo = entrenaGRNN(y0, x0, h, tipo, agrupa, k)
